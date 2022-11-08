@@ -14,6 +14,25 @@ import (
 
 func main() {
 
+	// read all words english
+	mAll := make(map[string]int)
+	readFileAll, err := os.Open("words.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fileAllScanner := bufio.NewScanner(readFileAll)
+	fileAllScanner.Split(bufio.ScanLines)
+	for fileAllScanner.Scan() {
+		text := strings.ToLower(fileAllScanner.Text())
+		index := strings.Index(text, " ")
+		if index == -1 {
+			mAll[text] = 1
+		} else {
+			mAll[text[0:index]] = 1
+		}
+	}
+	readFileAll.Close()
+
 	// read file ignore text
 	mIgnore := make(map[string]int)
 	readFile, err := os.Open("ignore_words.txt")
@@ -54,11 +73,30 @@ func main() {
 		for scanner.Scan() {
 			//fmt.Println(scanner.Text())
 			text := strings.ToLower(scanner.Text())
-			text = regexp.MustCompile(`[^a-zA-Z]+`).ReplaceAllString(text, "")
-			if strings.Contains(text, "_") || strings.Contains(text, "$") {
+			text = strings.ReplaceAll(text, "?", "")
+			text = strings.ReplaceAll(text, "!", "")
+			text = strings.ReplaceAll(text, ",", "")
+			text = strings.ReplaceAll(text, ".", "")
+			text = strings.ReplaceAll(text, "-", "")
+			text = strings.ReplaceAll(text, "\"", "")
+			text = strings.ReplaceAll(text, ":", "")
+			text = strings.ReplaceAll(text, "”", "")
+			text = strings.ReplaceAll(text, "~", "")
+			text = strings.ReplaceAll(text, "—", "")
+			//text = regexp.MustCompile(`[^a-zA-Z]+`)
+			//.ReplaceAllString(text, "")
+			numberRegexp := regexp.MustCompile(`\d`)
+			matchNumber := numberRegexp.MatchString(text)
+			if matchNumber {
+				continue
+			}
+			if strings.TrimSpace(text) == "" || strings.Contains(text, "_") || strings.Contains(text, "$") {
 				continue
 			}
 			if _, ok := mIgnore[text]; ok {
+				continue
+			}
+			if _, ok := mAll[text]; !ok {
 				continue
 			}
 			count := 1
